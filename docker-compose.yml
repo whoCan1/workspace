@@ -1,0 +1,124 @@
+version: "3"
+services:
+  nginx:
+    image: nginx:1.24.0
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./www:/www/:rw
+      - ./services/nginx/ssl:/ssl/:rw
+      - ./services/nginx:/etc/nginx:rw
+      - ./logs/nginx:/var/log/nginx:rw
+    environment:
+      TZ: "Asia/Shanghai"
+    restart: always
+    networks:
+      - default
+      # 可以把-default 改成下列配置，以固定容器IP
+      #default:
+      #  ipv4_address: 10.0.0.10
+
+  php83:
+    build:
+      context: ./services/php/php83
+      args:
+        PHP_VERSION: php:8.3.0-fpm
+        TZ: "Asia/Shanghai"
+    container_name: php83
+    expose:
+      - 9000
+      - 9501
+      - 9502
+    # extra_hosts:
+    #   - "www.site1.com:172.17.0.1"
+    volumes:
+      - ./www:/www/:rw
+      - ./services/php/php83/php.ini:/usr/local/etc/php/php.ini:rw
+      - ./logs/php/php83:/var/log/php
+      - ./data/composer:/tmp/composer
+    restart: always
+    cap_add:
+      - SYS_PTRACE
+    networks:
+      - default
+  
+  php74:
+    build:
+      context: ./services/php/php74
+      args:
+        PHP_VERSION: php:7.4.33-fpm
+        TZ: "Asia/Shanghai"
+    container_name: php74
+    expose:
+      - 9000
+    volumes:
+      - ./www:/www/:rw
+      - ./services/php/php74/php.ini:/usr/local/etc/php/php.ini:rw
+      - ./logs/php/php74:/var/log/php
+      - ./data/composer:/tmp/composer
+    restart: always
+    cap_add:
+      - SYS_PTRACE
+    networks:
+      - default
+
+  mysql80:
+    image: mysql:8.0.35
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./services/mysql/mysql80/mysql.conf.d:/etc/mysql/mysql.conf.d:rw
+      - ./data/mysql/mysql80:/var/lib/mysql/:rw
+      - ./logs/mysql/mysql80:/var/log/mysql/:rw
+    restart: always
+    privileged: true
+    networks:
+      - default
+    environment:
+      MYSQL_ROOT_PASSWORD: "123456"
+      MYSQL_ROOT_HOST: "%"
+      TZ: "Asia/Shanghai"
+  
+  mysql57:
+    image: mysql:5.7.42
+    container_name: mysql5
+    ports:
+      - "3305:3306"
+    volumes:
+      - ./services/mysql/mysql57/mysql.conf.d:/etc/mysql/mysql.conf.d:rw
+      - ./data/mysql/mysql57:/var/lib/mysql/:rw
+      - ./logs/mysql/mysql57:/var/log/mysql/:rw
+    restart: always
+    networks:
+      - default
+    environment:
+      MYSQL_ROOT_PASSWORD: "123456"
+      MYSQL_ROOT_HOST: "%"
+      TZ: "Asia/Shanghai"
+
+  redis72:
+   image: redis:7.2.3
+   container_name: redis
+   ports:
+     - "6379:6379"
+   volumes:
+     - ./services/redis/redis72/redis.conf:/usr/local/etc/redis/redis.conf:ro
+     - ./data/redis/redis72:/data/:rw
+   restart: always
+   entrypoint: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+   environment:
+     TZ: "Asia/Shanghai"
+   networks:
+     - default
+
+networks:
+  default:
+    driver: bridge
+    ipam:
+      driver: default
+      # 解除下面的注释可以设置网段，用于nginx等容器固定容器IP
+      #config:
+      #  - subnet: 10.0.0.0/24
