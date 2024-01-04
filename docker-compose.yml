@@ -29,8 +29,6 @@ services:
     container_name: php83
     expose:
       - 9000
-      - 9501
-      - 9502
     # extra_hosts:
     #   - "www.site1.com:172.17.0.1"
     volumes:
