@@ -4,7 +4,6 @@
 /.history
 *.log
 /www/*
-/services/php/php*
 /services/nginx/ssl/*
 /services/nginx/conf.d/*
 !/services/nginx/conf.d/default.conf
