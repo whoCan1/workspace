@@ -3,6 +3,7 @@
 /.DS_Store
 /.history
 *.log
+/data
 /www/*
 /services/nginx/ssl/*
 /services/nginx/conf.d/*
